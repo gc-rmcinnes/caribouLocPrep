@@ -14,7 +14,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("NEWS.md", "README.md", "caribouLocPrep.Rmd"),
-  reqdPkgs = c("SpaDES.core (>= 2.1.5.9002)", 
+  reqdPkgs = c("SpaDES.core (>= 2.1.5.9002)",
                "ggplot2", 'data.table', 'readxl', 'fs', 'tidyr',
                'purrr', 'janitor', 'raster','sf','googledrive', 'sfheaders', 'amt', 'Require',
                'reproducible', 'move2','dplyr', 'terra', "rnaturalearth"
@@ -47,7 +47,7 @@ defineModule(sim, list(
     defineParameter("jurisdiction", "character",c("BC","SK","MB", "ON", "NT", "YT"),
                     desc = "A list of jurisdictions to run"),
     defineParameter("herdNT", "character",
-                    c('Dehcho Boreal Woodland Caribou', 'North Slave Boreal Caribou', 
+                    c('Dehcho Boreal Woodland Caribou', 'North Slave Boreal Caribou',
                       'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
                       'South Slave Boreal Woodland Caribou'),
                     desc = "A list of specific herds from NT to download data from"),
@@ -82,15 +82,15 @@ defineModule(sim, list(
   ),
   outputObjects = bindrows(
     #createsOutput("objectName", "objectClass", "output object description", ...)
-    createsOutput(objectName = "caribouLoc", objectClass = "data.table", 
+    createsOutput(objectName = "caribouLoc", objectClass = "data.table",
                   desc = "Harmonized and cleaned caribou locations of all jurisdictions provided"),
-    createsOutput(objectName = "boo", objectClass = "list",
-                  desc = paste0("List of data.table objects with caribou GPS",
-                                "information, per province, created in",
-                                ".inputObjects if not provided")),
+    # createsOutput(objectName = "boo", objectClass = "list",
+    #               desc = paste0("List of data.table objects with caribou GPS",
+    #                             "information, per province, created in",
+    #                             ".inputObjects if not provided")),
     createsOutput(objectName = "studyArea", objectClass = "SpatVector",
                   desc = "a single polygon derived from the full extent of caribou locations")
-    
+
   )
 ))
 
@@ -98,6 +98,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
+      browser()
       # Test if user has movebank info IF it is running for data that is there
       if (any("YT" %in% Par$jurisdiction,
               "NT" %in% Par$jurisdiction)){
@@ -122,13 +123,13 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
           stop(errorMessage)
         }
       }
-      sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "downloadData")
-      sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createFullExtent")
-      
+      # sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "downloadData")
+      # sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createFullExtent")
+
     },
     downloadData = {
       # run data harmonization
-      sim$caribouLoc <- downloadDataAndHarmonize(jurisdiction = Par$jurisdiction, 
+      sim$caribouLoc <- downloadDataAndHarmonize(jurisdiction = Par$jurisdiction,
                                                  boo = sim$boo)
     },
     createFullExtent = {
@@ -145,7 +146,6 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
 .inputObjects <- function(sim) {
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
-  
   #run the jurisdictional data prep scripts for the supplied jurisdictions
   if (!suppliedElsewhere("boo", sim = sim)) {
     sim$boo <- list()
@@ -156,7 +156,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       bc_layers <- list()
       bc_layers <- Map(layer = layers, function(layer) {
         prepInputs(url = Par$urlToBCDataFolder,
-                   targetFile = telemDataZipFile, useCache = FALSE, 
+                   targetFile = telemDataZipFile, useCache = FALSE,
                    layer = layer,
                    destinationPath = dPath, fun = terra::vect(x = targetFile, layer = layer))
       })
@@ -173,7 +173,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       #download the .gdb files (there are many, this prepInputs takes time)
       sim$boo[["MB"]] <- prepInputs(url = Par$urlToMBDataFolder,
                                     destinationPath = dPath,
-                                    archive = NA, 
+                                    archive = NA,
                                     fun = dataPrep_MB(dPath = dPath))
     }
     if ("ON" %in% Par$jurisdiction){
@@ -187,19 +187,18 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
     }
     if ("YT" %in% Par$jurisdiction){
       #the login required to access data on Move Bank for YT and NWT
-      loginStored <- move2::movebank_store_credentials(username=Par$MoveBankUser, 
+      loginStored <- move2::movebank_store_credentials(username=Par$MoveBankUser,
                                                        password=Par$MoveBankPass)
       #use movebank to access the data
-      print("Access to YT data requires a Move Bank account, ensure you have collaboration rights to the study")
+      message("Access to YT data requires a Move Bank account, ensure you have collaboration rights to the study")
       sim$boo[["YT"]] <- dataPrep_YT(loginStored)
     }
     if ("NT" %in% Par$jurisdiction){
       #the login required to access data on Move Bank for YT and NWT
-      loginStored <- move2::movebank_store_credentials(username=Par$MoveBankUser, 
+      loginStored <- move2::movebank_store_credentials(username=Par$MoveBankUser,
                                                        password=Par$MoveBankPass)
       #use movebank to access the data
-      print(paste0("Access to NT data requires a Move Bank account, ensure you",
-                   " have collaboration rights to the study"))
+      message("Access to NT data requires a Move Bank account, ensure you have collaboration rights to the study")
       sim$boo[["NT"]] <- Cache(dataPrep_NT, loginStored, herds = Par$herdNT)
     }
   }
