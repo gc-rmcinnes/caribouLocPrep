@@ -2,7 +2,6 @@ studyareaFullextent <- function(dat.clean,
                                 rangeBuffer,
                                 targetCRS = 3978){
   # create study area and buffered study area ----
-  browser()
   sfcoords<- dat.clean%>%st_as_sf(coords = c('x','y'))%>%
     st_set_crs(st_crs(targetCRS))
 

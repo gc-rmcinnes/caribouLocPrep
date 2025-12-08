@@ -98,7 +98,6 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      browser()
       # Test if user has movebank info IF it is running for data that is there
       if (any("YT" %in% Par$jurisdiction,
               "NT" %in% Par$jurisdiction)){
