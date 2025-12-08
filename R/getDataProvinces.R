@@ -52,50 +52,41 @@ dataPrep_SK <- function(dPath =dpath) {
   return(booSK)
 }
 
-dataPrep_BC <- function(dPath=dPath, bc_layers, layers) {
+dataPrep_BC <- function(dPath=dPath, bc_layer) {
   ### Input data ----
-  kmb <- bc_layers[[2]]
-  regional <- bc_layers[[1]]
-
-  ### Prep data ----
-  # checking for right formats and grabbing what need
-  kmb.dt <- as.data.table(kmb)
-  kmb.dt <- kmb.dt[!(is.na(Animal_ID)) & Animal_ID != 'None',.(id = Animal_ID, Region, Population_Unit,
-                                                               datetime = GMT_FixDateTime, Longitude, Latitude)]
-  regional.dt <- as.data.table(regional)
-  regional.dt[, datetime := FixDateTime + hours(8)]
-  regional.dt <- regional.dt[!(is.na(Animal_ID)) & Animal_ID != 'None',.(id = Animal_ID, Region, Population_Unit,
-                                                                         datetime, Longitude, Latitude)]
-  dat<- rbind(kmb.dt, regional.dt)
+  dat <- data.table(as.data.frame(bc_layer),geom(bc_layer))
+  dat <- dat[!(is.na(WLH_ID)) & WLH_ID != 'None',.(id = WLH_ID, Pop_Unt, datetime = Date, x, y)]
+  dat[, datetime := as.POSIXct(datetime, format = "%Y-%m-%d %H:%M:%OS %z", tz = "UTC")]
   #check for complete entries and remove any incomplete data
-  dat_cleaner <- dat[complete.cases(Longitude,Latitude, datetime)]
-
+  dat_cleaner <- dat[complete.cases(x,y, datetime)]
 
   ### convert from long/lat to NAD83/Canada Atlas Lambert (need units to be m)
   crs <- st_crs(4326)$wkt
   outcrs <- st_crs(3978)
 
-  sfboo <- st_as_sf(dat_cleaner, coords = c('Longitude', 'Latitude'),
+  sfboo <- st_as_sf(dat_cleaner, coords = c('x', 'y'),
                     crs = crs)
   outboo <- st_transform(sfboo, outcrs)
   booBCnc <- setDT(sfheaders::sf_to_df(outboo, fill = T))
 
-
-
   ### EXPLORE ----
   # check if all observations are complete
   all(complete.cases(booBCnc[,.(x,y, datetime)]))
-
 
   # check for duplicated time stamps
   booBCnc[,any(duplicated(datetime)), by = id]
 
   # We have some duplicated time stamps, these need to be removed prior to creating a track.
   DT <- unique(booBCnc, by = c('id', 'datetime'))
+  # remove entries that have large time gaps
+  DTclean <- DT[
+    order(id, datetime),
+    .SD[is.na(shift(datetime)) | difftime(datetime, shift(datetime), units = "hours") <= 13],
+    by = id]
+
   booBC <- DT
 
   return(booBC)
-
 }
 
 dataPrep_NT <- function(loginStored, herds) {

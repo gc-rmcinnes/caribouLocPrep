@@ -21,7 +21,7 @@ defineModule(sim, list(
   ), # TODO Double check you REALLY use all packages. Simplify as much as possible!
   parameters = bindrows(
     defineParameter("urlToBCDataFolder", "character",
-                    "https://drive.google.com/drive/u/0/folders/1spylo1XDqYO1SmvRXfzhIo3v6rsSryZs", NA, NA,
+                    "https://drive.google.com/drive/folders/1KQu21vjDheVQLmZwnLPvsjSNNNylo1Up", NA, NA,
                     desc = "The URL to a folder where BC data is kept"),
     defineParameter("urlToSKDataFolder", "character",
                     "https://drive.google.com/drive/folders/18jdIk_62S73PRe1ZtX0JXxp1pxxbFPaX", NA, NA,
@@ -149,18 +149,14 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
   if (!suppliedElsewhere("boo", sim = sim)) {
     sim$boo <- list()
     if ("BC" %in% Par$jurisdiction) {
-      #download just the .gdb file from google drive
-      layers <- list("Regional_Telemetry_20211026", "KMB_Local_Telemetry_20211026")
-      telemDataZipFile <- "telem_data_request_20211026.gdb.zip"
-      bc_layers <- list()
-      bc_layers <- Map(layer = layers, function(layer) {
-        prepInputs(url = Par$urlToBCDataFolder,
-                   targetFile = telemDataZipFile, useCache = FALSE,
-                   layer = layer,
-                   destinationPath = dPath, fun = terra::vect(x = targetFile, layer = layer))
-      })
-      sim$boo[["BC"]] <- prepInputs(destinationPath = dPath,
-                                    fun = dataPrep_BC(dPath=dPath, bc_layers, layers))
+      #download the shapefile
+      bc_layer <- prepInputs(url = Par$urlToBCDataFolder,
+                                    destinationPath = dPath,
+                                    targetFile = "Boreal_Caribou_Telem.shp",
+                                    fun = terra::vect(x = targetFile))
+
+      sim$boo[["BC"]] <-prepInputs(destinationPath = dPath,
+                                   fun = dataPrep_BC(dPath = dPath, bc_layer))
     }
     if ("SK" %in% Par$jurisdiction){
       #download the spreadsheets of points
@@ -172,7 +168,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       #download the .gdb files (there are many, this prepInputs takes time)
       sim$boo[["MB"]] <- prepInputs(url = Par$urlToMBDataFolder,
                                     destinationPath = dPath,
-                                    archive = NA,
+                                    archive = "zip",
                                     fun = dataPrep_MB(dPath = dPath))
     }
     if ("ON" %in% Par$jurisdiction){
