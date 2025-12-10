@@ -79,10 +79,10 @@ dataPrep_BC <- function(dPath=dPath, bc_layer) {
   # We have some duplicated time stamps, these need to be removed prior to creating a track.
   DT <- unique(booBCnc, by = c('id', 'datetime'))
   # remove entries that have large time gaps
-  DTclean <- DT[
-    order(id, datetime),
-    .SD[is.na(shift(datetime)) | difftime(datetime, shift(datetime), units = "hours") <= 13],
-    by = id]
+  # DTclean <- DT[
+  #   order(id, datetime),
+  #   .SD[is.na(shift(datetime)) | difftime(datetime, shift(datetime), units = "hours") <= 13],
+  #   by = id]
 
   booBC <- DT
 
@@ -96,11 +96,12 @@ dataPrep_NT <- function(loginStored, herds) {
                              'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
                              'South Slave Boreal Woodland Caribou'))
   hab <- habi[herd %in% herds, habs]
+  study <- list(384182382,469002388,151021631,1902733508,149370498)
 
   # make a list of all data from Movebank
   nt.move <- list()
-  for (ds in 1:length(herds)) {
-    nt.move[[ds]] <- Cache(move2::movebank_download_study, study = paste0( 'GNWT ', herds[[ds]]),
+  for (ds in 1:length(study)) {
+    nt.move[[ds]] <- Cache(move2::movebank_download_study, study = study[ds],
                                            login = loginStored, removeDuplicatedTimestamps=TRUE)
   }
 
@@ -481,6 +482,8 @@ dataPrep_ON <- function(dPath = dPath) {
                     x, y)]
 
   dat_cleaner <- on.dt[complete.cases(x,y, datetime)]
+  # check for duplicated time stamps
+  dat_cleaner[,any(duplicated(datetime)), by = id]
   booON <- dat_cleaner
 
   return(booON)
