@@ -16,6 +16,7 @@ downloadDataAndHarmonize <- function(jurisdiction, boo){ # TODO More informative
     rmDupsKeepGT1HarmColumns(dt, jur)
   })
   dat.bind <- do.call("rbind", dat.all)
+  # make sure all id's are characters
   dat.bind[, id := as.character(id)]
 
   # Filter unrealistic speeds
