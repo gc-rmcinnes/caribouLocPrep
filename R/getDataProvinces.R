@@ -101,7 +101,7 @@ dataPrep_NT <- function(loginStored, herds) {
   # make a list of all data from Movebank
   nt.move <- list()
   for (ds in 1:length(study)) {
-    nt.move[[ds]] <- Cache(move2::movebank_download_study, study = study[ds],
+    nt.move[[ds]] <- Cache(move2::movebank_download_study, study = as.integer(study[ds]),
                                            login = loginStored, removeDuplicatedTimestamps=TRUE)
   }
 

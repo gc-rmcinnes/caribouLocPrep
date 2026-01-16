@@ -88,8 +88,10 @@ defineModule(sim, list(
     #               desc = paste0("List of data.table objects with caribou GPS",
     #                             "information, per province, created in",
     #                             ".inputObjects if not provided")),
-    createsOutput(objectName = "studyArea", objectClass = "SpatVector",
-                  desc = "a single polygon derived from the full extent of caribou locations")
+    createsOutput(objectName = "studyAreaCaribou", objectClass = "SpatVector",
+                  desc = "a single polygon derived from the full extent of caribou locations"),
+    createsOutput(objectName = "studyArea_juris", objectClass = "list",
+                  desc = "Named list of per-jurisdiction study area polygons (SpatVector)")
 
   )
 ))
@@ -124,6 +126,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       }
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "downloadData")
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createFullExtent")
+      sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createJurisdictionExtents")
 
     },
     downloadData = {
@@ -133,10 +136,21 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
     },
     createFullExtent = {
       # create study area buffered
-      sim$studyArea <- Cache(studyareaFullextent, dat.clean = sim$caribouLoc,
+      sim$studyAreaCaribou <- Cache(studyareaFullextent, dat.clean = sim$caribouLoc,
                              rangeBuffer = Par$rangeBuffer)
-      sim$studyArea <- terra::vect(sim$studyArea)
+      sim$studyAreaCaribou <- terra::vect(sim$studyAreaCaribou)
     },
+    createJurisdictionExtents = {
+      # create a study area for each jurisdiction
+      sim$studyArea_juris <- Cache(
+        studyareaByJurisdiction,
+        dat.clean = sim$caribouLoc,
+        rangeBuffer = Par$rangeBuffer
+      )
+      sim$studyArea_juris <- lapply(sim$studyArea_juris, terra::vect)
+    },
+
+
     warning(noEventWarning(sim))
   )
   return(invisible(sim))
@@ -168,7 +182,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       #download the .gdb files (there are many, this prepInputs takes time)
       sim$boo[["MB"]] <- prepInputs(url = Par$urlToMBDataFolder,
                                     destinationPath = dPath,
-                                    archive = "zip",
+                                    archive = NA,
                                     fun = dataPrep_MB(dPath = dPath))
     }
     if ("ON" %in% Par$jurisdiction){
