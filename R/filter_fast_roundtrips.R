@@ -18,12 +18,12 @@ filter_fast_roundtrips <- function(dt, speed_threshold_m_per_hr = 12000, ratio_t
   dt[, next_dist := sqrt(next_dx^2 + next_dy^2)]
   dt[, next_speed := next_dist / next_dtH]
 
-  # optional: round-trip midpoint collapses back near original
+  # round-trip midpoint collapses back near original
   dt[, full_dx := shift(x, type="lead") - shift(x), by=id ]
   dt[, full_dy := shift(y, type="lead") - shift(y), by=id ]
   dt[, full_dist := sqrt(full_dx^2 + full_dy^2)]
 
-  # ROUND TRIP CONDITION:
+  # Round trip condition:
   # both legs are fast AND full distance is much smaller
   dt[, roundtrip :=
        prev_speed > speed_threshold_m_per_hr &

@@ -22,19 +22,16 @@ defineModule(sim, list(
   parameters = bindrows(
     defineParameter("urlToBCDataFolder", "character",
                     "https://drive.google.com/drive/folders/1KQu21vjDheVQLmZwnLPvsjSNNNylo1Up", NA, NA,
-                    desc = "The URL to a folder where BC data is kept"),
+                    desc = "The URL to a folder where BC location data is kept"),
     defineParameter("urlToSKDataFolder", "character",
                     "https://drive.google.com/drive/folders/18jdIk_62S73PRe1ZtX0JXxp1pxxbFPaX", NA, NA,
-                    desc = "The URL to a folder where SK data is kept"),
+                    desc = "The URL to a folder where SK location data is kept"),
     defineParameter("urlToMBDataFolder", "character",
                     "https://drive.google.com/drive/folders/1hdTIcpiMueewC1DZsJE1gW8R8mdG7CkF", NA, NA,
-                    desc = "The URL to a folder where MB data is kept"),
+                    desc = "The URL to a folder where MB location data is kept"),
     defineParameter("urlToONDataFolder", "character",
                     "https://drive.google.com/drive/u/0/folders/1pivxW9sNOvoVNecsDH-rTuqP6WyI1XTF", NA, NA,
-                    desc = "The URL to a folder where ON data is kept"),
-    defineParameter("NWTMovebankID", "character",
-                    "", NA, NA,
-                    desc = "The MoveBank study ID where NTW is kept"),
+                    desc = "The URL to a folder where ON location data is kept"),
     defineParameter("YTMovebankID", "character",
                     "3023885998", NA, NA,
                     desc = "The MoveBank study ID where YT data is kept"),
@@ -45,12 +42,12 @@ defineModule(sim, list(
                     Sys.getenv("MOVEBANK_PASSWORD"), NA, NA,
                     desc = "The MoveBank user password to access studies stored on MoveBank"),
     defineParameter("jurisdiction", "character",c("BC","SK","MB", "ON", "NT", "YT"),
-                    desc = "A list of jurisdictions to run"),
+                    desc = "A list of jurisdictions to run through the workflow"),
     defineParameter("herdNT", "character",
                     c('Dehcho Boreal Woodland Caribou', 'North Slave Boreal Caribou',
                       'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
                       'South Slave Boreal Woodland Caribou'),
-                    desc = "A list of specific herds from NT to download data from"),
+                    desc = "A list of specific herd names from NT to download data from"),
     defineParameter(".plots", "character", "screen", NA, NA,
                     "Used by Plots function, which can be optionally used here"),
     defineParameter(".plotInitialTime", "numeric", start(sim), NA, NA,
@@ -76,9 +73,9 @@ defineModule(sim, list(
   inputObjects = bindrows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
     expectsInput(objectName = "boo", objectClass = "list",
-                 desc = "List of data.table objects with raw caribou GPS information, per province", sourceURL = NA),
+                 desc = "List of data.table objects with raw caribou GPS information, per jurisdiction", sourceURL = NA),
     expectsInput(objectName = "caribouLoc", objectClass = "list",
-                 desc = "List of data.table objects with processed caribou GPS information, per province", sourceURL = NA)
+                 desc = "List of data.table objects with processed caribou GPS information, per jurisdiction", sourceURL = NA)
   ),
   outputObjects = bindrows(
     #createsOutput("objectName", "objectClass", "output object description", ...)
@@ -89,9 +86,9 @@ defineModule(sim, list(
     #                             "information, per province, created in",
     #                             ".inputObjects if not provided")),
     createsOutput(objectName = "studyAreaCaribou", objectClass = "SpatVector",
-                  desc = "a single polygon derived from the full extent of caribou locations"),
+                  desc = "a single polygon derived from the full extent of caribou locations used for the global model"),
     createsOutput(objectName = "studyArea_juris", objectClass = "list",
-                  desc = "Named list of per-jurisdiction study area polygons (SpatVector)")
+                  desc = "Named list of per-jurisdiction study area polygons (SpatVector) used for jurisdictional models")
 
   )
 ))

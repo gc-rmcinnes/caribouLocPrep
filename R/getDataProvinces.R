@@ -186,281 +186,424 @@ dataPrep_YT <- function(loginStored) {
 }
 
 dataPrep_MB <- function(dPath = dPath) {
-  ### Input data ----
+  ### input data
   raw.mb <- dPath
-  #unzip all of the .gdb files
-  MI_Berens <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "MI_Berens_Caribou_2020APR02_CLEAN_NAD83_Z14")
-  BERENS_RND <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "BERENS_RND_GPS_2001_to_2004_complete_NAD83Z14")
-  BLDVN <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "BLDVN_2000_to_2014_complete_NAD83Z14")
-  ATIKO <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "ATIKO_2000_to_2014_complete_NAD83Z14")
-
-  interlake <- st_read(file.path(raw.mb, 'CaribouGPSData_Interlake.gdb.zip'), "Interlake_Total_Jan2021")
-
-  MI_NWH <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "MI_NWH_Caribou_Telemetry2020APR02_Clean_NAD83")
-  charron1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "CharronLK_GPS_MBHYDRO_Q2_2010_072020")
-  charron2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "CharronLK_GPS_MBHYDRO_Q4_2010_022021")
-
-  # imperial doesn't have enough data for an SSA, it's just VHF
-  MBhydro <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "MBHYDRO_Q2_2010_072020")
-  naosap1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Naosap_Reed_Total_NAD83_July2018")
-  naosap2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "gps_naosap_2002_06")
-  kississing <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Kississing_Total_NAD83_July2018")
-  #imperial <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Imperial_NAD83_2011")
-  naosap3 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "NaosapReed_MBHYDRO_Q4_2010_022021")
-
-  flintstone <- st_read(file.path(raw.mb, 'CaribouGPSdata_Owl_Flintstone.gdb.zip'), "Owl_Flintstone_1995_2018_complete_WGS84")
-
-  wimwap1<- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wim_Wap_GPS_MBHydro_Q2_2010_072020")
-  wimwap2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wim_Wap_GPS_MBHYDRO_Q4_2010_022021")
-  harding1 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Harding_GPS_MBHydro_Q2_2010_072020")
-  harding2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Harding_GPS_MBHYDRO_Q4_2010_022021")
-  wheadon1 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_GPS_MBHydro_Q2_2010_072020")
-  wheadon2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_Total_NAD83_Nov2018_Final")
-  wheadon3 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_GPS_MBHYDRO_Q4_2010_022021")
-
-  bog1<- st_read(file.path(raw.mb, 'CaribouGPSdata_TheBog.gdb.zip'), "TheBog_MH_2010_072020")
-  bog2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_TheBog.gdb.zip'), "TheBog_MBHYDRO_Q4_2010_022021")
-
-  william <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "William_Lake_Total_NAD83_Dec2019")
-  wabowden1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_GPS_MH_Q2_2010_072020")
-  wabowden2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_UHF_relocations_2009to2012_NAD83")
-  wabowden3 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_GPS_MBHYDRO_Q4_2010_022021")
-
-  kamuchawie <- st_read(file.path(raw.mb, 'CaribouGPSData_Kamuchawie.gdb.zip'), "Positions2025Jun12_Kamuchawie")
-
-  ### Prep data ----
-  ### convert to NAD83/Canada Atlas Lambert (need units to be m and consistent across)
   outcrs <- st_crs(3978)
+  # Read and transform all input layers
 
-  out_MI_Berens <- st_transform(MI_Berens, outcrs)
-  out_BERENS_RND <- st_transform(BERENS_RND, outcrs)
-  out_BLDVN <- st_transform(BLDVN, outcrs)
-  out_ATIKO <- st_transform(ATIKO, outcrs)
+  layer_defs <- list(
+    MI_Berens   = c("CaribouGPSData_AtikakiBerens.gdb.zip","MI_Berens_Caribou_2020APR02_CLEAN_NAD83_Z14"),
+    BERENS_RND  = c("CaribouGPSData_AtikakiBerens.gdb.zip","BERENS_RND_GPS_2001_to_2004_complete_NAD83Z14"),
+    BLDVN       = c("CaribouGPSData_AtikakiBerens.gdb.zip","BLDVN_2000_to_2014_complete_NAD83Z14"),
+    ATIKO       = c("CaribouGPSData_AtikakiBerens.gdb.zip","ATIKO_2000_to_2014_complete_NAD83Z14"),
 
-  out_interlake <- st_transform(interlake, outcrs)
+    interlake   = c("CaribouGPSData_Interlake.gdb.zip","Interlake_Total_Jan2021"),
 
-  out_MI_NWH <- st_transform(MI_NWH, outcrs)
-  out_charron1 <- st_transform(charron1, outcrs)
-  out_charron2 <- st_transform(charron2, outcrs)
+    MI_NWH      = c("CaribouGPSdata_Molson.gdb.zip","MI_NWH_Caribou_Telemetry2020APR02_Clean_NAD83"),
+    charron1    = c("CaribouGPSdata_Molson.gdb.zip","CharronLK_GPS_MBHYDRO_Q2_2010_072020"),
+    charron2    = c("CaribouGPSdata_Molson.gdb.zip","CharronLK_GPS_MBHYDRO_Q4_2010_022021"),
 
-  out_MBhydro <- st_transform(MBhydro, outcrs)
-  out_naosap1 <- st_transform(naosap1, outcrs)
-  out_naosap2 <- st_transform(naosap2, outcrs)
-  out_naosap3 <- st_transform(naosap3, outcrs)
-  out_kississing <- st_transform(kississing, outcrs)
-  #out_imperial <- st_transform(imperial, outcrs)
+    MBhydro     = c("CaribouGPSdata_NaosapReed.gdb.zip","MBHYDRO_Q2_2010_072020"),
+    naosap1     = c("CaribouGPSdata_NaosapReed.gdb.zip","Naosap_Reed_Total_NAD83_July2018"),
+    naosap2     = c("CaribouGPSdata_NaosapReed.gdb.zip","gps_naosap_2002_06"),
+    naosap3     = c("CaribouGPSdata_NaosapReed.gdb.zip","NaosapReed_MBHYDRO_Q4_2010_022021"),
+    kississing  = c("CaribouGPSdata_NaosapReed.gdb.zip","Kississing_Total_NAD83_July2018"),
 
-  out_flintstone <- st_transform(flintstone, outcrs)
+    flintstone  = c("CaribouGPSdata_Owl_Flintstone.gdb.zip","Owl_Flintstone_1995_2018_complete_WGS84"),
 
-  out_wimwap1 <- st_transform(wimwap1, outcrs)
-  out_wimwap2 <- st_transform(wimwap2, outcrs)
-  out_harding1 <- st_transform(harding1, outcrs)
-  out_harding2 <- st_transform(harding2, outcrs)
-  out_wheadon1 <- st_transform(wheadon1, outcrs)
-  out_wheadon2 <- st_transform(wheadon2, outcrs)
-  out_wheadon3 <- st_transform(wheadon3, outcrs)
+    wimwap1     = c("CaribouGPSData_PartridgeCrop.gdb.zip","Wim_Wap_GPS_MBHydro_Q2_2010_072020"),
+    wimwap2     = c("CaribouGPSData_PartridgeCrop.gdb.zip","Wim_Wap_GPS_MBHYDRO_Q4_2010_022021"),
+    harding1    = c("CaribouGPSData_PartridgeCrop.gdb.zip","Harding_GPS_MBHydro_Q2_2010_072020"),
+    harding2    = c("CaribouGPSData_PartridgeCrop.gdb.zip","Harding_GPS_MBHYDRO_Q4_2010_022021"),
+    wheadon1    = c("CaribouGPSData_PartridgeCrop.gdb.zip","Wheadon_GPS_MBHydro_Q2_2010_072020"),
+    wheadon2    = c("CaribouGPSData_PartridgeCrop.gdb.zip","Wheadon_Total_NAD83_Nov2018_Final"),
+    wheadon3    = c("CaribouGPSData_PartridgeCrop.gdb.zip","Wheadon_GPS_MBHYDRO_Q4_2010_022021"),
 
-  out_bog1 <- st_transform(bog1, outcrs)
-  out_bog2 <- st_transform(bog2, outcrs)
+    bog1        = c("CaribouGPSdata_TheBog.gdb.zip","TheBog_MH_2010_072020"),
+    bog2        = c("CaribouGPSdata_TheBog.gdb.zip","TheBog_MBHYDRO_Q4_2010_022021"),
 
-  out_william <- st_transform(william, outcrs)
-  out_wabowden1 <- st_transform(wabowden1, outcrs)
-  out_wabowden2 <- st_transform(wabowden2, outcrs)
-  out_wabowden3 <- st_transform(wabowden3, outcrs)
+    william     = c("CaribouGPSdata_Wabowden.gdb.zip","William_Lake_Total_NAD83_Dec2019"),
+    wabowden1   = c("CaribouGPSdata_Wabowden.gdb.zip","Wabowden_GPS_MH_Q2_2010_072020"),
+    wabowden2   = c("CaribouGPSdata_Wabowden.gdb.zip","Wabowden_UHF_relocations_2009to2012_NAD83"),
+    wabowden3   = c("CaribouGPSdata_Wabowden.gdb.zip","Wabowden_GPS_MBHYDRO_Q4_2010_022021"),
 
-  out_kamuchawie <- st_transform(kamuchawie, outcrs)
+    kamuchawie  = c("CaribouGPSData_Kamuchawie.gdb.zip","Positions2025Jun12_Kamuchawie")
+  )
 
+  sf_list <- vector("list", length(layer_defs))
+  names(sf_list) <- names(layer_defs)
+
+  for (nm in names(layer_defs)) {
+    f <- file.path(raw.mb, layer_defs[[nm]][1])
+    lyr <- layer_defs[[nm]][2]
+    sf_list[[nm]] <- st_transform(st_read(f, lyr, quiet = TRUE), outcrs)
+  }
+
+  # Convert to data.table
+
+  dt_list <- lapply(sf_list, \(x) setDT(sfheaders::sf_to_df(x, fill = TRUE)))
 
   # checking for right formats and grabbing what need
-  DT_MI_Berens <- setDT(sfheaders::sf_to_df(out_MI_Berens, fill = T))
-  DT_MI_Berens <- DT_MI_Berens[,.(id = Animal_ID, Fix_Status, Range,
-                                  datetime = as.POSIXct(paste(paste(GMT_Year, GMT_Month, GMT_Day, sep = '-'),
-                                                              paste(GMT_Hour, GMT_Minute, sep = ':'), sep = ' '),
-                                                        tz = 'gmt', format = '%Y-%m-%d %H:%M'),
-                                  x, y)]
-  # TODO what is time tz for BERENS_RND, BLDVN?
-  DT_BERENS_RND <- setDT(sfheaders::sf_to_df(out_BERENS_RND, fill = T))
-  DT_BERENS_RND <- DT_BERENS_RND[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
-                                    datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
-                                                                TIME, sep = ' '),
-                                                          format = '%Y-%m-%d %H:%M:%OS'),
-                                    x, y)]
-  DT_BLDVN <- setDT(sfheaders::sf_to_df(out_BLDVN, fill = T))
-  DT_BLDVN <-DT_BLDVN[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
-                         datetime = as.POSIXct(paste(gsub( " .*$", "", DATE ),
-                                                     TIME, sep = ' '),
-                                               format = '%Y-%m-%d %H:%M:%OS'),
-                         x, y)]
-  DT_ATIKO <- setDT(sfheaders::sf_to_df(out_ATIKO, fill = T))
-  DT_ATIKO <- DT_ATIKO[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
-                          datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
-                                                      TIME, sep = ' '),
-                                                format = '%Y-%m-%d %H:%M:%OS'),
-                          x, y)]
 
+  DT_MI_Berens <- dt_list$MI_Berens[,.(id = Animal_ID, Fix_Status, Range,
+                                       datetime = as.POSIXct(paste(paste(GMT_Year,GMT_Month,GMT_Day,sep='-'),
+                                                                   paste(GMT_Hour,GMT_Minute,sep=':'),sep=' '),
+                                                             tz='gmt', format='%Y-%m-%d %H:%M'), x,y)]
 
-  DT_interlake <- setDT(sfheaders::sf_to_df(out_interlake, fill = T))
-  DT_interlake <- DT_interlake[,.(id = Animal_ID, Fix_Status, Range,
-                                  datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                              paste(Hour, Minute, Second, sep = ':'), sep = ' '),
-                                                        format = '%Y-%m-%d %H:%M:%OS', tz = 'America/Chicago'),
-                                  x, y)]
+  DT_BERENS_RND <- dt_list$BERENS_RND[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+                                         datetime = as.POSIXct(paste(paste(YEAR,MONTH,DAY,sep='-'), TIME, sep=' '),
+                                                               format='%Y-%m-%d %H:%M:%OS'), x,y)]
 
-  DT_MI_NWH <- setDT(sfheaders::sf_to_df(out_MI_NWH, fill = T))
-  DT_MI_NWH <- DT_MI_NWH[,.(id = Animal_ID, Fix_Status, Range = RANGE,
-                            datetime = as.POSIXct(paste(paste(GMT_Year, GMT_Month, GMT_Day, sep = '-'),
-                                                        paste(GMT_Hour, GMT_Minute, sep = ':'), sep = ' '),
-                                                  tz = 'gmt', format = '%Y-%m-%d %H:%M'),
-                            x, y)]
-  DT_charron1 <- setDT(sfheaders::sf_to_df(out_charron1, fill = T))
-  # what is the tz for Charron 1 and 2?
-  DT_charron1 <- DT_charron1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
-  DT_charron2 <- setDT(sfheaders::sf_to_df(out_charron2, fill = T))
-  DT_charron2 <- DT_charron2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
+  DT_BLDVN <- dt_list$BLDVN[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+                               datetime = as.POSIXct(paste(gsub(" .*$","",DATE), TIME, sep=' '),
+                                                     format='%Y-%m-%d %H:%M:%OS'), x,y)]
 
-  DT_MBhydro <- setDT(sfheaders::sf_to_df(out_MBhydro, fill = T))
-  DT_MBhydro <- DT_MBhydro[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                              datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                          paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_naosap1 <- setDT(sfheaders::sf_to_df(out_naosap1, fill = T))
-  DT_naosap1 <- DT_naosap1[,.(id = Animal_ID, Fix_Status = NumSats, Range,
-                              datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
-                                                          paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_naosap2 <- setDT(sfheaders::sf_to_df(out_naosap2, fill = T))
-  DT_naosap2 <- DT_naosap2[,.(id = UNIQUE_ID, Fix_Status = FIX_STATUS, Range = RANGE,
-                              datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
-                                                          paste(HOUR, MINUTE, SECOND, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_naosap3 <- setDT(sfheaders::sf_to_df(out_naosap3, fill = T))
-  DT_naosap3 <- DT_naosap3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                              datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                          paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_kississing <- setDT(sfheaders::sf_to_df(kississing, fill = T))
-  DT_kississing <- DT_kississing[,.(id = Animal_ID, Fix_Status = NumSats, Range,
-                                    datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
-                                                                paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
-                                                          format = '%Y-%m-%d %H:%M:%OS'),
-                                    x=-1*x, y)]
-  # Don't use imperial, not enough info for SSA
-  #DT_imperial <- setDT(sfheaders::sf_to_df(out_imperial, fill = T))
+  DT_ATIKO <- dt_list$ATIKO[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+                               datetime = as.POSIXct(paste(paste(YEAR,MONTH,DAY,sep='-'), TIME, sep=' '),
+                                                     format='%Y-%m-%d %H:%M:%OS'), x,y)]
 
-  DT_flintstone <- setDT(sfheaders::sf_to_df(out_flintstone, fill = T))
-  DT_flintstone <- DT_flintstone[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range,
-                                    datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
-                                                                TIME, sep = ' '),
-                                                          format = '%Y-%m-%d %H:%M:%OS'),
-                                    x, y)]
+  DT_interlake <- dt_list$interlake[,.(id = Animal_ID, Fix_Status, Range,
+                                       datetime = as.POSIXct(paste(paste(Year,Month,Day,sep='-'),
+                                                                   paste(Hour,Minute,Second,sep=':'),sep=' '),
+                                                             format='%Y-%m-%d %H:%M:%OS', tz='America/Chicago'), x,y)]
 
-  DT_wimwap1 <- setDT(sfheaders::sf_to_df(out_wimwap1, fill = T))
-  DT_wimwap1 <- DT_wimwap1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                              datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                          paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_wimwap2 <- setDT(sfheaders::sf_to_df(out_wimwap2, fill = T))
-  DT_wimwap2 <- DT_wimwap2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                              datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                          paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x, y)]
-  DT_harding1 <- setDT(sfheaders::sf_to_df(out_harding1, fill = T))
-  DT_harding1 <- DT_harding1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
-  DT_harding2 <- setDT(sfheaders::sf_to_df(harding2, fill = T))
-  DT_harding2 <- DT_harding2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
-  DT_wheadon1 <- setDT(sfheaders::sf_to_df(out_wheadon1, fill = T))
-  DT_wheadon1 <- DT_wheadon1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
-  DT_wheadon2 <- setDT(sfheaders::sf_to_df(out_wheadon2, fill = T))
-  DT_wheadon2 <- DT_wheadon2[,.(id = Animal_ID, Fix_Status = NumSats, Range,
-                                datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
-                                                            paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x=x, y)]
-  DT_wheadon3 <- setDT(sfheaders::sf_to_df(out_wheadon3, fill = T))
-  DT_wheadon3 <- DT_wheadon3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                            paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                      format = '%Y-%m-%d %H:%M:%OS'),
-                                x, y)]
+  DT_MI_NWH <- dt_list$MI_NWH[,.(id = Animal_ID, Fix_Status, Range = RANGE,
+                                 datetime = as.POSIXct(paste(paste(GMT_Year,GMT_Month,GMT_Day,sep='-'),
+                                                             paste(GMT_Hour,GMT_Minute,sep=':'),sep=' '),
+                                                       tz='gmt', format='%Y-%m-%d %H:%M'), x,y)]
 
-  DT_bog1 <- setDT(sfheaders::sf_to_df(out_bog1, fill = T))
-  DT_bog1 <- DT_bog1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                        datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                    paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                              format = '%Y-%m-%d %H:%M:%OS'),
-                        x, y)]
-  DT_bog2 <- setDT(sfheaders::sf_to_df(out_bog2, fill = T))
-  DT_bog2 <- DT_bog2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                        datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                    paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                              format = '%Y-%m-%d %H:%M:%OS'),
-                        x, y)]
+  # repeated pattern datasets
+  nav_sets <- c("charron1","charron2","MBhydro","naosap3","wimwap1","wimwap2",
+                "harding1","harding2","wheadon1","wheadon3","bog1","bog2",
+                "wabowden1","wabowden3")
 
-  DT_william <- setDT(sfheaders::sf_to_df(william, fill = T))
-  DT_william <- DT_william[,.(id = Animal_ID, Fix_Status = NumSats, Range,
-                              datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
-                                                          paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
-                                                    format = '%Y-%m-%d %H:%M:%OS'),
-                              x=-1 *x, y)]
-  DT_wabowden1 <- setDT(sfheaders::sf_to_df(out_wabowden1, fill = T))
-  DT_wabowden1 <- DT_wabowden1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                  datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
-                                                              paste(Hour, 00, 00, sep = ':'), sep = ' '),
-                                                        format = '%Y-%m-%d %H:%M:%OS'),
-                                  x, y)]
-  DT_wabowden2 <- setDT(sfheaders::sf_to_df(out_wabowden2, fill = T))
-  DT_wabowden2 <- DT_wabowden2[,.(id = Unique_id, Fix_Status = NAV, Range = Population,
-                                  datetime = as.POSIXct(paste(paste(Year, sprintf("%02d", Month), sprintf("%02d", Day), sep = '-'),
-                                                              paste(sprintf("%02d", Hour), sprintf("%02d", Minute), sprintf("%02d", Second), sep = ':'), sep = ' '),
-                                                        format = '%Y-%m-%d %H:%M:%OS'),
-                                  x, y)]
-  DT_wabowden3 <- setDT(sfheaders::sf_to_df(out_wabowden3, fill = T))
-  DT_wabowden3 <- DT_wabowden3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
-                                  datetime = as.POSIXct(paste(paste(Year, sprintf("%02d", Month), sprintf("%02d", Day), sep = '-'),
-                                                              paste(sprintf("%02d", Hour), 00, 00, sep = ':'), sep = ' '),
-                                                        format = '%Y-%m-%d %H:%M:%OS'),
-                                  x, y)]
+  for (nm in nav_sets) {
+    assign(paste0("DT_",nm),
+           dt_list[[nm]][,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+                            datetime = as.POSIXct(paste(paste(Year,Month,Day,sep='-'),
+                                                        paste(Hour,0,0,sep=':'),sep=' '),
+                                                  format='%Y-%m-%d %H:%M:%OS'), x,y)])
+  }
 
-  DT_kamuchawie <- setDT(sfheaders::sf_to_df(out_kamuchawie, fill = T))
-  DT_kamuchawie <- DT_kamuchawie[,.(id = Collar_ID, Fix_Status = Fix_Type, Range = 'Kamuchawie',
-                                    datetime = as.POSIXct(Acq__Time__UTC_, format = '%Y-%m-%d %H:%M:%OS'),
-                                    x, y)]
+  DT_naosap1 <- dt_list$naosap1[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+                                   datetime = as.POSIXct(paste(paste(Year,match(Month,month.name),sprintf("%02d",Day),sep='-'),
+                                                               paste(sprintf("%02d",Hour),sprintf("%02d",Minute),0,sep=':'),sep=' '),
+                                                         format='%Y-%m-%d %H:%M:%OS'), x,y)]
 
-  mb.dt <- rbind(DT_ATIKO, DT_BERENS_RND, DT_BLDVN, DT_bog1, DT_bog2, DT_charron1, DT_charron2,
-                 DT_flintstone, DT_harding1, DT_harding2, DT_interlake, DT_kississing, DT_MBhydro,
-                 DT_MBhydro, DT_MI_Berens, DT_MI_NWH, DT_naosap1, DT_naosap2, DT_naosap3,
-                 DT_wabowden1, DT_wabowden2, DT_wabowden3, DT_wheadon1, DT_wheadon2, DT_wheadon3,
-                 DT_william, DT_wimwap1, DT_wimwap2, DT_kamuchawie)
+  DT_naosap2 <- dt_list$naosap2[,.(id = UNIQUE_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+                                   datetime = as.POSIXct(paste(paste(YEAR,MONTH,DAY,sep='-'),
+                                                               paste(HOUR,MINUTE,SECOND,sep=':'),sep=' '),
+                                                         format='%Y-%m-%d %H:%M:%OS'), x,y)]
 
-  # right now quick and dirty way to deal with outliers
-  dat_cleaner <- mb.dt[complete.cases(x,y, datetime)]
+  DT_kississing <- dt_list$kississing[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+                                         datetime = as.POSIXct(paste(paste(Year,match(Month,month.name),sprintf("%02d",Day),sep='-'),
+                                                                     paste(sprintf("%02d",Hour),sprintf("%02d",Minute),0,sep=':'),sep=' '),
+                                                               format='%Y-%m-%d %H:%M:%OS'), x=-1*x, y)]
+
+  DT_flintstone <- dt_list$flintstone[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range,
+                                         datetime = as.POSIXct(paste(paste(YEAR,MONTH,DAY,sep='-'), TIME, sep=' '),
+                                                               format='%Y-%m-%d %H:%M:%OS'), x,y)]
+
+  DT_wheadon2 <- dt_list$wheadon2[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+                                     datetime = as.POSIXct(paste(paste(Year,match(Month,month.name),sprintf("%02d",Day),sep='-'),
+                                                                 paste(sprintf("%02d",Hour),sprintf("%02d",Minute),0,sep=':'),sep=' '),
+                                                           format='%Y-%m-%d %H:%M:%OS'), x,y)]
+
+  DT_william <- dt_list$william[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+                                   datetime = as.POSIXct(paste(paste(Year,match(Month,month.name),sprintf("%02d",Day),sep='-'),
+                                                               paste(sprintf("%02d",Hour),sprintf("%02d",Minute),0,sep=':'),sep=' '),
+                                                         format='%Y-%m-%d %H:%M:%OS'), x=-1*x, y)]
+
+  DT_wabowden2 <- dt_list$wabowden2[,.(id = Unique_id, Fix_Status = NAV, Range = Population,
+                                       datetime = as.POSIXct(paste(paste(Year,sprintf("%02d",Month),sprintf("%02d",Day),sep='-'),
+                                                                   paste(sprintf("%02d",Hour),sprintf("%02d",Minute),sprintf("%02d",Second),sep=':'),sep=' '),
+                                                             format='%Y-%m-%d %H:%M:%OS'), x,y)]
+
+  DT_kamuchawie <- dt_list$kamuchawie[,.(id = Collar_ID, Fix_Status = Fix_Type, Range = 'Kamuchawie',
+                                         datetime = as.POSIXct(Acq__Time__UTC_, format='%Y-%m-%d %H:%M:%OS'), x,y)]
+
+  # Bind and clean
+
+  mb.dt <- rbindlist(mget(ls(pattern="^DT_")), use.names = TRUE, fill = TRUE)
+
+  dat_cleaner <- mb.dt[complete.cases(x,y,datetime)]
   booMB <- dat_cleaner
+
+  # ### Input data ----
+  # raw.mb <- dPath
+  # #unzip all of the .gdb files
+  # MI_Berens <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "MI_Berens_Caribou_2020APR02_CLEAN_NAD83_Z14")
+  # BERENS_RND <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "BERENS_RND_GPS_2001_to_2004_complete_NAD83Z14")
+  # BLDVN <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "BLDVN_2000_to_2014_complete_NAD83Z14")
+  # ATIKO <- st_read(file.path(raw.mb, 'CaribouGPSData_AtikakiBerens.gdb.zip'), "ATIKO_2000_to_2014_complete_NAD83Z14")
+  #
+  # interlake <- st_read(file.path(raw.mb, 'CaribouGPSData_Interlake.gdb.zip'), "Interlake_Total_Jan2021")
+  #
+  # MI_NWH <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "MI_NWH_Caribou_Telemetry2020APR02_Clean_NAD83")
+  # charron1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "CharronLK_GPS_MBHYDRO_Q2_2010_072020")
+  # charron2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Molson.gdb.zip'), "CharronLK_GPS_MBHYDRO_Q4_2010_022021")
+  #
+  # # imperial doesn't have enough data for an SSA, it's just VHF
+  # MBhydro <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "MBHYDRO_Q2_2010_072020")
+  # naosap1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Naosap_Reed_Total_NAD83_July2018")
+  # naosap2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "gps_naosap_2002_06")
+  # kississing <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Kississing_Total_NAD83_July2018")
+  # #imperial <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "Imperial_NAD83_2011")
+  # naosap3 <- st_read(file.path(raw.mb, 'CaribouGPSdata_NaosapReed.gdb.zip'), "NaosapReed_MBHYDRO_Q4_2010_022021")
+  #
+  # flintstone <- st_read(file.path(raw.mb, 'CaribouGPSdata_Owl_Flintstone.gdb.zip'), "Owl_Flintstone_1995_2018_complete_WGS84")
+  #
+  # wimwap1<- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wim_Wap_GPS_MBHydro_Q2_2010_072020")
+  # wimwap2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wim_Wap_GPS_MBHYDRO_Q4_2010_022021")
+  # harding1 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Harding_GPS_MBHydro_Q2_2010_072020")
+  # harding2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Harding_GPS_MBHYDRO_Q4_2010_022021")
+  # wheadon1 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_GPS_MBHydro_Q2_2010_072020")
+  # wheadon2 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_Total_NAD83_Nov2018_Final")
+  # wheadon3 <- st_read(file.path(raw.mb, 'CaribouGPSData_PartridgeCrop.gdb.zip'), "Wheadon_GPS_MBHYDRO_Q4_2010_022021")
+  #
+  # bog1<- st_read(file.path(raw.mb, 'CaribouGPSdata_TheBog.gdb.zip'), "TheBog_MH_2010_072020")
+  # bog2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_TheBog.gdb.zip'), "TheBog_MBHYDRO_Q4_2010_022021")
+  #
+  # william <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "William_Lake_Total_NAD83_Dec2019")
+  # wabowden1 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_GPS_MH_Q2_2010_072020")
+  # wabowden2 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_UHF_relocations_2009to2012_NAD83")
+  # wabowden3 <- st_read(file.path(raw.mb, 'CaribouGPSdata_Wabowden.gdb.zip'), "Wabowden_GPS_MBHYDRO_Q4_2010_022021")
+  #
+  # kamuchawie <- st_read(file.path(raw.mb, 'CaribouGPSData_Kamuchawie.gdb.zip'), "Positions2025Jun12_Kamuchawie")
+  #
+  # ### Prep data ----
+  # ### convert to NAD83/Canada Atlas Lambert (need units to be m and consistent across)
+  # outcrs <- st_crs(3978)
+  #
+  # out_MI_Berens <- st_transform(MI_Berens, outcrs)
+  # out_BERENS_RND <- st_transform(BERENS_RND, outcrs)
+  # out_BLDVN <- st_transform(BLDVN, outcrs)
+  # out_ATIKO <- st_transform(ATIKO, outcrs)
+  #
+  # out_interlake <- st_transform(interlake, outcrs)
+  #
+  # out_MI_NWH <- st_transform(MI_NWH, outcrs)
+  # out_charron1 <- st_transform(charron1, outcrs)
+  # out_charron2 <- st_transform(charron2, outcrs)
+  #
+  # out_MBhydro <- st_transform(MBhydro, outcrs)
+  # out_naosap1 <- st_transform(naosap1, outcrs)
+  # out_naosap2 <- st_transform(naosap2, outcrs)
+  # out_naosap3 <- st_transform(naosap3, outcrs)
+  # out_kississing <- st_transform(kississing, outcrs)
+  # #out_imperial <- st_transform(imperial, outcrs)
+  #
+  # out_flintstone <- st_transform(flintstone, outcrs)
+  #
+  # out_wimwap1 <- st_transform(wimwap1, outcrs)
+  # out_wimwap2 <- st_transform(wimwap2, outcrs)
+  # out_harding1 <- st_transform(harding1, outcrs)
+  # out_harding2 <- st_transform(harding2, outcrs)
+  # out_wheadon1 <- st_transform(wheadon1, outcrs)
+  # out_wheadon2 <- st_transform(wheadon2, outcrs)
+  # out_wheadon3 <- st_transform(wheadon3, outcrs)
+  #
+  # out_bog1 <- st_transform(bog1, outcrs)
+  # out_bog2 <- st_transform(bog2, outcrs)
+  #
+  # out_william <- st_transform(william, outcrs)
+  # out_wabowden1 <- st_transform(wabowden1, outcrs)
+  # out_wabowden2 <- st_transform(wabowden2, outcrs)
+  # out_wabowden3 <- st_transform(wabowden3, outcrs)
+  #
+  # out_kamuchawie <- st_transform(kamuchawie, outcrs)
+  #
+  #
+  # # checking for right formats and grabbing what need
+  # DT_MI_Berens <- setDT(sfheaders::sf_to_df(out_MI_Berens, fill = T))
+  # DT_MI_Berens <- DT_MI_Berens[,.(id = Animal_ID, Fix_Status, Range,
+  #                                 datetime = as.POSIXct(paste(paste(GMT_Year, GMT_Month, GMT_Day, sep = '-'),
+  #                                                             paste(GMT_Hour, GMT_Minute, sep = ':'), sep = ' '),
+  #                                                       tz = 'gmt', format = '%Y-%m-%d %H:%M'),
+  #                                 x, y)]
+  # # TODO what is time tz for BERENS_RND, BLDVN?
+  # DT_BERENS_RND <- setDT(sfheaders::sf_to_df(out_BERENS_RND, fill = T))
+  # DT_BERENS_RND <- DT_BERENS_RND[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+  #                                   datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
+  #                                                               TIME, sep = ' '),
+  #                                                         format = '%Y-%m-%d %H:%M:%OS'),
+  #                                   x, y)]
+  # DT_BLDVN <- setDT(sfheaders::sf_to_df(out_BLDVN, fill = T))
+  # DT_BLDVN <-DT_BLDVN[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+  #                        datetime = as.POSIXct(paste(gsub( " .*$", "", DATE ),
+  #                                                    TIME, sep = ' '),
+  #                                              format = '%Y-%m-%d %H:%M:%OS'),
+  #                        x, y)]
+  # DT_ATIKO <- setDT(sfheaders::sf_to_df(out_ATIKO, fill = T))
+  # DT_ATIKO <- DT_ATIKO[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+  #                         datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
+  #                                                     TIME, sep = ' '),
+  #                                               format = '%Y-%m-%d %H:%M:%OS'),
+  #                         x, y)]
+  #
+  #
+  # DT_interlake <- setDT(sfheaders::sf_to_df(out_interlake, fill = T))
+  # DT_interlake <- DT_interlake[,.(id = Animal_ID, Fix_Status, Range,
+  #                                 datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                             paste(Hour, Minute, Second, sep = ':'), sep = ' '),
+  #                                                       format = '%Y-%m-%d %H:%M:%OS', tz = 'America/Chicago'),
+  #                                 x, y)]
+  #
+  # DT_MI_NWH <- setDT(sfheaders::sf_to_df(out_MI_NWH, fill = T))
+  # DT_MI_NWH <- DT_MI_NWH[,.(id = Animal_ID, Fix_Status, Range = RANGE,
+  #                           datetime = as.POSIXct(paste(paste(GMT_Year, GMT_Month, GMT_Day, sep = '-'),
+  #                                                       paste(GMT_Hour, GMT_Minute, sep = ':'), sep = ' '),
+  #                                                 tz = 'gmt', format = '%Y-%m-%d %H:%M'),
+  #                           x, y)]
+  # DT_charron1 <- setDT(sfheaders::sf_to_df(out_charron1, fill = T))
+  # # what is the tz for Charron 1 and 2?
+  # DT_charron1 <- DT_charron1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  # DT_charron2 <- setDT(sfheaders::sf_to_df(out_charron2, fill = T))
+  # DT_charron2 <- DT_charron2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  #
+  # DT_MBhydro <- setDT(sfheaders::sf_to_df(out_MBhydro, fill = T))
+  # DT_MBhydro <- DT_MBhydro[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                             datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                         paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_naosap1 <- setDT(sfheaders::sf_to_df(out_naosap1, fill = T))
+  # DT_naosap1 <- DT_naosap1[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+  #                             datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
+  #                                                         paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_naosap2 <- setDT(sfheaders::sf_to_df(out_naosap2, fill = T))
+  # DT_naosap2 <- DT_naosap2[,.(id = UNIQUE_ID, Fix_Status = FIX_STATUS, Range = RANGE,
+  #                             datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
+  #                                                         paste(HOUR, MINUTE, SECOND, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_naosap3 <- setDT(sfheaders::sf_to_df(out_naosap3, fill = T))
+  # DT_naosap3 <- DT_naosap3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                             datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                         paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_kississing <- setDT(sfheaders::sf_to_df(kississing, fill = T))
+  # DT_kississing <- DT_kississing[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+  #                                   datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
+  #                                                               paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
+  #                                                         format = '%Y-%m-%d %H:%M:%OS'),
+  #                                   x=-1*x, y)]
+  # # Don't use imperial, not enough info for SSA
+  # #DT_imperial <- setDT(sfheaders::sf_to_df(out_imperial, fill = T))
+  #
+  # DT_flintstone <- setDT(sfheaders::sf_to_df(out_flintstone, fill = T))
+  # DT_flintstone <- DT_flintstone[,.(id = ANIMAL_ID, Fix_Status = FIX_STATUS, Range,
+  #                                   datetime = as.POSIXct(paste(paste(YEAR, MONTH, DAY, sep = '-'),
+  #                                                               TIME, sep = ' '),
+  #                                                         format = '%Y-%m-%d %H:%M:%OS'),
+  #                                   x, y)]
+  #
+  # DT_wimwap1 <- setDT(sfheaders::sf_to_df(out_wimwap1, fill = T))
+  # DT_wimwap1 <- DT_wimwap1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                             datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                         paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_wimwap2 <- setDT(sfheaders::sf_to_df(out_wimwap2, fill = T))
+  # DT_wimwap2 <- DT_wimwap2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                             datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                         paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x, y)]
+  # DT_harding1 <- setDT(sfheaders::sf_to_df(out_harding1, fill = T))
+  # DT_harding1 <- DT_harding1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  # DT_harding2 <- setDT(sfheaders::sf_to_df(harding2, fill = T))
+  # DT_harding2 <- DT_harding2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  # DT_wheadon1 <- setDT(sfheaders::sf_to_df(out_wheadon1, fill = T))
+  # DT_wheadon1 <- DT_wheadon1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  # DT_wheadon2 <- setDT(sfheaders::sf_to_df(out_wheadon2, fill = T))
+  # DT_wheadon2 <- DT_wheadon2[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+  #                               datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
+  #                                                           paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x=x, y)]
+  # DT_wheadon3 <- setDT(sfheaders::sf_to_df(out_wheadon3, fill = T))
+  # DT_wheadon3 <- DT_wheadon3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                               datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                           paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                     format = '%Y-%m-%d %H:%M:%OS'),
+  #                               x, y)]
+  #
+  # DT_bog1 <- setDT(sfheaders::sf_to_df(out_bog1, fill = T))
+  # DT_bog1 <- DT_bog1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                       datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                   paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                             format = '%Y-%m-%d %H:%M:%OS'),
+  #                       x, y)]
+  # DT_bog2 <- setDT(sfheaders::sf_to_df(out_bog2, fill = T))
+  # DT_bog2 <- DT_bog2[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                       datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                   paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                             format = '%Y-%m-%d %H:%M:%OS'),
+  #                       x, y)]
+  #
+  # DT_william <- setDT(sfheaders::sf_to_df(william, fill = T))
+  # DT_william <- DT_william[,.(id = Animal_ID, Fix_Status = NumSats, Range,
+  #                             datetime = as.POSIXct(paste(paste(Year, match(Month, month.name), sprintf("%02d", Day), sep = '-'),
+  #                                                         paste(sprintf("%02d", Hour), sprintf("%02d", Minute), 00, sep = ':'), sep = ' '),
+  #                                                   format = '%Y-%m-%d %H:%M:%OS'),
+  #                             x=-1 *x, y)]
+  # DT_wabowden1 <- setDT(sfheaders::sf_to_df(out_wabowden1, fill = T))
+  # DT_wabowden1 <- DT_wabowden1[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                                 datetime = as.POSIXct(paste(paste(Year, Month, Day, sep = '-'),
+  #                                                             paste(Hour, 00, 00, sep = ':'), sep = ' '),
+  #                                                       format = '%Y-%m-%d %H:%M:%OS'),
+  #                                 x, y)]
+  # DT_wabowden2 <- setDT(sfheaders::sf_to_df(out_wabowden2, fill = T))
+  # DT_wabowden2 <- DT_wabowden2[,.(id = Unique_id, Fix_Status = NAV, Range = Population,
+  #                                 datetime = as.POSIXct(paste(paste(Year, sprintf("%02d", Month), sprintf("%02d", Day), sep = '-'),
+  #                                                             paste(sprintf("%02d", Hour), sprintf("%02d", Minute), sprintf("%02d", Second), sep = ':'), sep = ' '),
+  #                                                       format = '%Y-%m-%d %H:%M:%OS'),
+  #                                 x, y)]
+  # DT_wabowden3 <- setDT(sfheaders::sf_to_df(out_wabowden3, fill = T))
+  # DT_wabowden3 <- DT_wabowden3[,.(id = AnimalID, Fix_Status = NAV, Range = CaptureRan,
+  #                                 datetime = as.POSIXct(paste(paste(Year, sprintf("%02d", Month), sprintf("%02d", Day), sep = '-'),
+  #                                                             paste(sprintf("%02d", Hour), 00, 00, sep = ':'), sep = ' '),
+  #                                                       format = '%Y-%m-%d %H:%M:%OS'),
+  #                                 x, y)]
+  #
+  # DT_kamuchawie <- setDT(sfheaders::sf_to_df(out_kamuchawie, fill = T))
+  # DT_kamuchawie <- DT_kamuchawie[,.(id = Collar_ID, Fix_Status = Fix_Type, Range = 'Kamuchawie',
+  #                                   datetime = as.POSIXct(Acq__Time__UTC_, format = '%Y-%m-%d %H:%M:%OS'),
+  #                                   x, y)]
+  #
+  # mb.dt <- rbind(DT_ATIKO, DT_BERENS_RND, DT_BLDVN, DT_bog1, DT_bog2, DT_charron1, DT_charron2,
+  #                DT_flintstone, DT_harding1, DT_harding2, DT_interlake, DT_kississing, DT_MBhydro,
+  #                DT_MBhydro, DT_MI_Berens, DT_MI_NWH, DT_naosap1, DT_naosap2, DT_naosap3,
+  #                DT_wabowden1, DT_wabowden2, DT_wabowden3, DT_wheadon1, DT_wheadon2, DT_wheadon3,
+  #                DT_william, DT_wimwap1, DT_wimwap2, DT_kamuchawie)
+  #
+  # # right now quick and dirty way to deal with outliers
+  # dat_cleaner <- mb.dt[complete.cases(x,y, datetime)]
+  # booMB <- dat_cleaner
 
   return(booMB)
 }
