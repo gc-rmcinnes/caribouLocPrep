@@ -90,7 +90,6 @@ dataPrep_BC <- function(dPath=dPath, bc_layer) {
 }
 
 dataPrep_NT <- function(loginStored, herds) {
-
   habi <- data.table(habs = c('dehcho', 'north.slave', 'sahtu', 'sahtu2020', 'south.slave'),
                     herd = c('Dehcho Boreal Woodland Caribou', 'North Slave Boreal Caribou',
                              'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
@@ -107,7 +106,7 @@ dataPrep_NT <- function(loginStored, herds) {
 
   nt <- rbindlist(lapply(1:length(hab), function(hh){
     # First, let's work with the specific move2 object.
-    moveTable <- nt.move[[ds]]
+    moveTable <- nt.move[[hh]]
 
     # Move the track-level attributes to the event level
     # This will add all columns from the track data to the event data.
@@ -155,6 +154,7 @@ dataPrep_NT <- function(loginStored, herds) {
                     crs = crs)
   outboo <- st_transform(sfboo, outcrs)
   booNT <- setDT(sfheaders::sf_to_df(outboo, fill = TRUE))
+  booNT[, id := as.character(id)]
   return(booNT)
 }
 
@@ -178,6 +178,7 @@ dataPrep_YT <- function(loginStored) {
 
   ### standarize names and columns ----
   booYT <- boo_notclean[, .(id = individual_local_identifier, datetime, x, y, argos_altitude, gps_fix_type_raw)]
+  booYT[, id := as.character(id)]
 
   ### EXPLORE ----
   # check if all observations are complete

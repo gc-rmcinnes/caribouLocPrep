@@ -11,7 +11,6 @@ studyareaFullextent <- function(dat.clean,
   studyArea.sf <- st_as_sf(studyArea.buff)
   studyArea.union <- st_union(studyArea.sf)
   studyArea.ch <- sf::st_convex_hull(studyArea.union)
-
   return(studyArea.ch)
   ## save buffered study area ----
 }

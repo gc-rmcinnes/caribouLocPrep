@@ -48,6 +48,9 @@ defineModule(sim, list(
                       'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
                       'South Slave Boreal Woodland Caribou'),
                     desc = "A list of specific herd names from NT to download data from"),
+    defineParameter("studyAreaGlobal", "logical", "TRUE", NA, NA,
+                    paste0("Should the simulation use jurisdictional or global scale?",
+                           "defaults to jurisdictional")),
     defineParameter(".plots", "character", "screen", NA, NA,
                     "Used by Plots function, which can be optionally used here"),
     defineParameter(".plotInitialTime", "numeric", start(sim), NA, NA,
@@ -88,8 +91,9 @@ defineModule(sim, list(
     createsOutput(objectName = "studyAreaCaribou", objectClass = "SpatVector",
                   desc = "a single polygon derived from the full extent of caribou locations used for the global model"),
     createsOutput(objectName = "studyArea_juris", objectClass = "list",
-                  desc = "Named list of per-jurisdiction study area polygons (SpatVector) used for jurisdictional models")
-
+                  desc = "Named list of per-jurisdiction study area polygons (SpatVector) used for jurisdictional models"),
+    createsOutput(objectName = "studyArea_global", objectClass = "list",
+                  desc = "A list of combined study areas to use in a global model simulation, to be normalized across global polygons")
   )
 ))
 
@@ -124,6 +128,9 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "downloadData")
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createFullExtent")
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createJurisdictionExtents")
+      if (isTRUE(Par$studyAreaGlobal)) {
+        sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createGlobalStudyarea")
+      }
 
     },
     downloadData = {
@@ -146,7 +153,18 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       )
       sim$studyArea_juris <- lapply(sim$studyArea_juris, terra::vect)
     },
+    createGlobalStudyarea = {
+      # create polygon blobs for global model
+      message("Creating global study area(s)")
 
+      sim$studyAreaGlobal <- createGlobalSA(
+        studyArea_juris = sim$studyArea_juris,
+        jurisdictions   = Par$jurisdiction
+      )
+
+      message("Created ", nrow(sim$studyAreaGlobal), " global study area polygon(s): ",
+              paste(sim$studyAreaGlobal$blobName, collapse = ", "))
+    },
 
     warning(noEventWarning(sim))
   )
@@ -197,7 +215,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
                                                        password=Par$MoveBankPass)
       #use movebank to access the data
       message("Access to YT data requires a Move Bank account, ensure you have collaboration rights to the study")
-      sim$boo[["YT"]] <- dataPrep_YT(loginStored)
+      sim$boo[["YT"]] <- Cache(dataPrep_YT, loginStored = loginStored)
     }
     if ("NT" %in% Par$jurisdiction){
       #the login required to access data on Move Bank for YT and NWT
@@ -205,7 +223,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
                                                        password=Par$MoveBankPass)
       #use movebank to access the data
       message("Access to NT data requires a Move Bank account, ensure you have collaboration rights to the study")
-      sim$boo[["NT"]] <- Cache(dataPrep_NT, loginStored, herds = Par$herdNT)
+      sim$boo[["NT"]] <- Cache(dataPrep_NT, loginStored = loginStored, herds = Par$herdNT)
     }
   }
   return(invisible(sim))
