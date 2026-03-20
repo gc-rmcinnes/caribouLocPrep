@@ -68,7 +68,7 @@ defineModule(sim, list(
                     "Should caching of events or module be used?"),
     defineParameter("rangeBuffer", "numeric", 100000, NA, NA,
                     paste0("What buffer do you want for getting the extent of",
-                           "collars chosen? Defaults to 100km (in meters)")),,
+                           "collars chosen? Defaults to 100km (in meters)")),
     defineParameter("outputFolderID", "character", "https://drive.google.com/drive/folders/1CRSY_tJucL3E8VDgUYEv9WXuG1nKImH3", NA, NA,
                     "Google Drive folder ID for workflow outputs")
   ),
