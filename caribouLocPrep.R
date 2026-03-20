@@ -3,7 +3,7 @@ defineModule(sim, list(
   description = paste0("This module downloads and cleansup caribou collar data",
                        "from several provinces and Territories in Canada."),
   keywords = c("Caribou","Location",""),
-  authors = c(person("Julie", "Tuner", email = "", role = c("aut", "cre")),
+  authors = c(person("Julie", "Turner", email = "julwturner@gmail.com", role = c("aut", "cre")),
               person("Rory", "McInnes", email = "", role = c("aut", "cre")),
               person("Eliot", "McIntire", email = "", role = c("aut", "cre")),
               person("Tati", "Micheletti", email = "tati.micheletti@gmail.com",
