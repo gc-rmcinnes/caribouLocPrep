@@ -48,7 +48,7 @@ defineModule(sim, list(
                       'Sahtu Boreal Woodland Caribou', 'Sahtu Boreal Woodland Caribou (2020)',
                       'South Slave Boreal Woodland Caribou'),
                     desc = "A list of specific herd names from NT to download data from"),
-    defineParameter("studyAreaGlobal", "logical", "TRUE", NA, NA,
+    defineParameter("simScale", "Character", "global", NA, NA,
                     paste0("Should the simulation use jurisdictional or global scale?",
                            "defaults to jurisdictional")),
     defineParameter(".plots", "character", "screen", NA, NA,
@@ -71,7 +71,9 @@ defineModule(sim, list(
                     "Should caching of events or module be used?"),
     defineParameter("rangeBuffer", "numeric", 100000, NA, NA,
                     paste0("What buffer do you want for getting the extent of",
-                           "collars chosen? Defaults to 100km (in meters)"))
+                           "collars chosen? Defaults to 100km (in meters)")),,
+    defineParameter("outputFolderID", "character", "https://drive.google.com/drive/folders/1CRSY_tJucL3E8VDgUYEv9WXuG1nKImH3", NA, NA,
+                    "Google Drive folder ID for workflow outputs")
   ),
   inputObjects = bindrows(
     #expectsInput("objectName", "objectClass", "input object description", sourceURL, ...),
@@ -128,9 +130,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "downloadData")
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createFullExtent")
       sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createJurisdictionExtents")
-      if (isTRUE(Par$studyAreaGlobal)) {
-        sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "createGlobalStudyarea")
-      }
+      sim <- scheduleEvent(sim, time(sim), "caribouLocPrep", "save")
 
     },
     downloadData = {
@@ -153,17 +153,39 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       )
       sim$studyArea_juris <- lapply(sim$studyArea_juris, terra::vect)
     },
-    createGlobalStudyarea = {
-      # create polygon blobs for global model
-      message("Creating global study area(s)")
+    save = {
+      message("Saving studyArea_juris to workflowOutputs on Google Drive")
 
-      sim$studyAreaGlobal <- createGlobalSA(
-        studyArea_juris = sim$studyArea_juris,
-        jurisdictions   = Par$jurisdiction
+      if (!requireNamespace("googledrive", quietly = TRUE)) {
+        stop("Package 'googledrive' is required for this event.")
+      }
+
+      folder_id <- Par$outputFolderID
+
+      if (is.na(folder_id)) {
+        stop("outputFolderID parameter must be supplied")
+      }
+
+      output_folder <- googledrive::as_id(folder_id)
+
+      tmp_file <- tempfile(fileext = ".rds")
+
+      studyAreaJ <- sim$studyArea_juris
+
+      saveRDS(studyAreaJ, tmp_file)
+
+      message("Uploading studyArea_juris")
+
+      googledrive::drive_upload(
+        media = tmp_file,
+        path = output_folder,
+        name = "studyArea_juris.rds",
+        overwrite = TRUE
       )
 
-      message("Created ", nrow(sim$studyAreaGlobal), " global study area polygon(s): ",
-              paste(sim$studyAreaGlobal$blobName, collapse = ", "))
+      unlink(tmp_file)
+
+      message("Upload complete: studyArea_juris.rds")
     },
 
     warning(noEventWarning(sim))
@@ -224,6 +246,30 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       #use movebank to access the data
       message("Access to NT data requires a Move Bank account, ensure you have collaboration rights to the study")
       sim$boo[["NT"]] <- Cache(dataPrep_NT, loginStored = loginStored, herds = Par$herdNT)
+
+      # Merge NT + YT if both exist
+
+      if (all(c("YT", "NT") %in% names(sim$boo))) {
+
+        message("Merging NT and YT datasets into NTYT")
+
+        # combine
+        sim$boo[["NTYT"]] <- data.table::rbindlist(
+          list(
+            sim$boo[["NT"]],
+            sim$boo[["YT"]]
+          ),
+          use.names = TRUE,
+          fill = TRUE
+        )
+
+        # remove originals
+        sim$boo[["NT"]] <- NULL
+        sim$boo[["YT"]] <- NULL
+
+        Par$jurisdiction <- setdiff(Par$jurisdiction, c("NT","YT"))
+        Par$jurisdiction <- c(Par$jurisdiction, "NTYT")
+      }
     }
   }
   return(invisible(sim))
