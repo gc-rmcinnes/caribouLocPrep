@@ -133,7 +133,8 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
     downloadData = {
       # run data harmonization
       sim$caribouLoc <- downloadDataAndHarmonize(jurisdiction = Par$jurisdiction,
-                                                 boo = sim$boo)
+                                                 boo = sim$boo) |>
+        Cache()
     },
     createFullExtent = {
       # create study area buffered
