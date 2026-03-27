@@ -2,7 +2,7 @@ defineModule(sim, list(
   name = "caribouLocPrep",
   description = paste0("This module downloads and cleansup caribou collar data",
                        "from several provinces and Territories in Canada."),
-  keywords = c("Caribou","Location",""),
+  keywords = c("Caribou","Location","Data harmonization"),
   authors = c(person("Julie", "Turner", email = "julwturner@gmail.com", role = c("aut", "cre")),
               person("Rory", "McInnes", email = "rory_mcinnes@hotmail.com", role = c("aut", "cre")),
               person("Eliot", "McIntire", email = "", role = c("aut", "cre")),
@@ -177,7 +177,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       googledrive::drive_upload(
         media = tmp_file,
         path = output_folder,
-        name = "studyArea_juris.rds",
+        name = paste0("studyArea_juris_", .studyAreaName, ".rds"),
         overwrite = TRUE
       )
 
