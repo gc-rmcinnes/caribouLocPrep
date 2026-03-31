@@ -2,7 +2,7 @@ spaceless <- function(x) {colnames(x) <- gsub(" ", "", colnames(x));x}
 
 #i think breaking these out into individual scripts would work well and have cleaner module code
 dataPrep_SK <- function(dPath =dpath) {
-  ### Input data ----
+  ### Input data
   sk <- dPath
 
   # list of files
@@ -53,7 +53,7 @@ dataPrep_SK <- function(dPath =dpath) {
 }
 
 dataPrep_BC <- function(dPath=dPath, bc_layer) {
-  ### Input data ----
+  ### Input data
   dat <- data.table(as.data.frame(bc_layer),geom(bc_layer))
   dat <- dat[!(is.na(WLH_ID)) & WLH_ID != 'None',.(id = WLH_ID, Pop_Unt, datetime = Date, x, y)]
   dat[, datetime := as.POSIXct(datetime, format = "%Y-%m-%d %H:%M:%OS %z", tz = "UTC")]
@@ -154,10 +154,10 @@ dataPrep_NT <- function(loginStored, herds) {
 }
 
 dataPrep_YT <- function(loginStored) {
-  ### Input data ----
+  ### Input data
   dat <- Cache(move2::movebank_download_study, study_id = "Boreal Caribou - Yukon Collars",
                login = loginStored, removeDuplicatedTimestamps=TRUE, progress = TRUE)
-  ### Prep data ----
+  ### Prep data
   dat <- data.table(dat)[, c("x", "y") := as.data.frame(st_coordinates(geometry))]
 
   dat_cleaner <- dat[complete.cases(x,y, timestamp)]
@@ -171,11 +171,11 @@ dataPrep_YT <- function(loginStored) {
   outboo <- st_transform(sfboo, outcrs)
   boo_notclean <- setDT(sfheaders::sf_to_df(outboo, fill = T))
 
-  ### standarize names and columns ----
+  ### standarize names and columns
   booYT <- boo_notclean[, .(id = individual_local_identifier, datetime, x, y, argos_altitude, gps_fix_type_raw)]
   booYT[, id := as.character(id)]
 
-  ### EXPLORE ----
+  ### EXPLORE
   # check if all observations are complete
   booComplete <- all(complete.cases(booYT[,.(x,y, datetime)]))
   return(booYT)

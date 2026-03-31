@@ -71,7 +71,10 @@ knitr::kable(df_params, caption = "List of (ref:caribouLocPrep) parameters and t
 
 ### Events
 
-The init event harmonizes the data and creates a study area. The study area can be derived from the harmonized data or from home range estimators like KDE or DBBMM. 
+The init event schedules the data processing events. "downloadData" harmonizes the downloaded data from all jurisdictions requested 
+and applies advanced filters for removing unnatural speed between points, distance traveled, and round trips. 
+"createFullExtent" generates a buffered/convex hull study area of all the points requested, used in landscape preparation.
+"createJurisdictionExtents" generates a buffered study area for each jurisdiction, this is used for global simulations.
 
 ### Plotting
 
@@ -79,11 +82,15 @@ Write what is plotted.
 
 ### Saving
 
-Write what is saved.
+studyArea_juris is saved to a google drive folder for use in the SSUD module. 
 
 ### Module outputs
 
 Description of the module outputs (Table \@ref(tab:moduleOutputs-caribouLocPrep)).
+
+caribouLoc is a data.table of cleaned and harmonized points with advanced filters applied.
+studyAreaCaribou is the buffered/convexhull of the full dataset requested
+studyArea_juris is a collection of polygons from buffered points for each jurisdiction requested
 
 ```{r moduleOutputs-caribouLocPrep, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
 df_outputs <- SpaDES.core::moduleOutputs("caribouLocPrep", "C:/Users/rmcinnes/Documents/caribouPrep")

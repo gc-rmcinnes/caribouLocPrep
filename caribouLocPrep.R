@@ -90,9 +90,7 @@ defineModule(sim, list(
     createsOutput(objectName = "studyAreaCaribou", objectClass = "SpatVector",
                   desc = "a single polygon derived from the full extent of caribou locations used for the global model"),
     createsOutput(objectName = "studyArea_juris", objectClass = "list",
-                  desc = "Named list of per-jurisdiction study area polygons (SpatVector) used for jurisdictional models"),
-    createsOutput(objectName = "studyArea_global", objectClass = "list",
-                  desc = "A list of combined study areas to use in a global model simulation, to be normalized across global polygons")
+                  desc = "Named list of per-jurisdiction study area polygons (SpatVector) used for jurisdictional models")
   )
 ))
 
@@ -177,7 +175,7 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
       googledrive::drive_upload(
         media = tmp_file,
         path = output_folder,
-        name = paste0("studyArea_juris_", .studyAreaName, ".rds"),
+        name = paste0("studyArea_juris_", Par$.studyAreaName, ".rds"),
         overwrite = TRUE
       )
 
