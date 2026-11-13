@@ -1,2 +1,28 @@
 
 data/
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+CHECKSUMS.txt
+.positai
+
+## restricted terms and the real project policy (hold host names) -- local only, never committed
+_restricted_terms.txt
+.claude/r-project-policy.json
+.claude/settings.local.json
+
+## caribou location data, wherever they land (they belong in data/)
+*collar*.csv
+*collar*.gpkg
+*collar*.rds
+*telemetry*
+
+## secrets / credentials / tokens
+.Renviron
+*.Renviron
+.httr-oauth
+.httr-oauth-*
+
+## OS files
+.DS_Store
