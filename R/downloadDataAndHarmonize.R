@@ -51,12 +51,8 @@ downloadDataAndHarmonize <- function(jurisdiction, boo){
   # Filter long-term clusters
   dat.bind <- filter_clusters(dat.bind, window_hours = 48, radius_m = 50)
 
-  # Filter fast round-trips
-  dat.bind <- filter_fast_roundtrips(
-    dat.bind,
-    speed_threshold_m_per_hr = 12000,
-    ratio_threshold = 0.25
-  )
+  # Filter fast round-trips (amt::flag_roundtrips(), as in hsaCEtool)
+  dat.bind <- filter_fast_roundtrips(dat.bind, delta = 100000, epsilon = 10)
 
   # Remove erroneous coordinates
   dat.clean <- dat.bind[

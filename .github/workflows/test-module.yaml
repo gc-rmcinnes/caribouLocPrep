@@ -1,0 +1,67 @@
+## Run this module's tests (tests/testthat) with tests/run-tests.R. The tests call the functions in R/
+## with small made-up locations, and run simInit() and spades() with `boo` supplied and without the
+## save event, so no data, logins or network access are needed. They install the module's reqdPkgs,
+## since simInit() attaches them; the PredictiveEcology packages are pinned to commits known to
+## work together.
+name: Module tests
+
+on:
+  push:
+    paths:
+      - .github/workflows/test-module.yaml
+      - caribouLocPrep.R
+      - R/**
+      - tests/**
+  pull_request:
+    paths:
+      - .github/workflows/test-module.yaml
+      - caribouLocPrep.R
+      - R/**
+      - tests/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Module tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::testthat
+            any::withr
+            any::amt
+            any::data.table
+            any::dplyr
+            any::fs
+            any::ggplot2
+            any::googledrive
+            any::janitor
+            any::move2
+            any::purrr
+            any::raster
+            any::readxl
+            any::rnaturalearth
+            any::sf
+            any::sfheaders
+            any::terra
+            any::tidyr
+            github::PredictiveEcology/Require@d6e3df6f63026d3b1047f2ca28632685553521b4
+            github::PredictiveEcology/quickPlot@a49fab61de547aaffd7f8fb5629571f88b4022f9
+            github::PredictiveEcology/reproducible@b56c3003823a3bf5bd129dc1ebcdccb64c339589
+            github::PredictiveEcology/SpaDES.core@a21acb0493692ea305560893702b2401d01da8ee
+
+      ## tests/run-tests.R limits the tests to 2 cores, as CRAN asks
+      - name: Run tests
+        run: Rscript tests/run-tests.R
