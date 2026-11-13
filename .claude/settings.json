@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(~/.config/**)",
+      "Read(./_restricted_terms.txt)",
+      "Read(./*.Renviron)",
+      "Read(./.Renviron)",
+      "Read(~/.Renviron)",
+      "Read(./.httr-oauth*)"
+    ]
+  }
+}

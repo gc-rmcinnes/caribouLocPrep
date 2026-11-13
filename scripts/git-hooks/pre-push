@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+## The clone's pre-push hook: scripts/git-hooks/check-restricted-names on what the push publishes.
+## Install it by copy, once per clone, from the repository root:
+##   install -m 755 scripts/git-hooks/pre-push "$(git rev-parse --git-common-dir)/hooks/pre-push"
+## A copy, not a link: a link into the main worktree dangles whenever that checkout lacks the
+## script (a branch from before it was added), and git then skips the hook without a word.
+##
+## With git's arguments and ref lines, it runs the check of the worktree being pushed from (git
+## runs a hook from its top directory); if that checkout has none, the copy committed on
+## origin/main; if neither exists, it refuses the push. Both copies run with bash, so a lost
+## executable bit does not matter. Exit status: the check's, or 1 for a refusal.
+## No pipefail (see scripts/git-hooks/dispatch).
+set -u
+
+me=pre-push
+check=scripts/git-hooks/check-restricted-names
+
+## refuse <why>: stop the push, saying how to skip the check
+refuse() {
+  echo "$me: $1, so the push is refused." >&2
+  echo "$me: check out a branch that has $check, or push with --no-verify to skip the check" >&2
+  exit 1
+}
+
+top="$(git rev-parse --show-toplevel 2>/dev/null </dev/null)" || top=
+if [ -n "$top" ] && [ -f "$top/$check" ]; then
+  exec bash "$top/$check" "$@"
+fi
+
+## origin/main's copy, from a temporary file: cat-file prints the blob as committed (no textconv)
+## and fails when the ref or the path is missing
+tmp=
+trap '[ -n "$tmp" ] && rm -f -- "$tmp"' EXIT
+tmp="$(mktemp -t check-restricted-names.XXXXXX 2>/dev/null)" ||
+  refuse "$check is not in this checkout, and no temporary file could be made for origin/main's"
+if ! git --no-replace-objects cat-file blob "refs/remotes/origin/main:$check" >"$tmp" \
+  2>/dev/null </dev/null || [ ! -s "$tmp" ]; then
+  refuse "$check was not found in this checkout or on origin/main"
+fi
+echo "$me: $check is not in this checkout; running the copy on origin/main" >&2
+rc=0
+bash "$tmp" "$@" || rc=$?
+exit "$rc"

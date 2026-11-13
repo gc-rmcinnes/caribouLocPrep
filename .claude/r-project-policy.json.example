@@ -1,0 +1,8 @@
+{
+  "rBinary": "Rscript",
+  "packageInstall": "renv",
+  "publishRequiresApproval": true,
+  "controllerHosts": ["login-node-name"],
+  "hostPatterns": ["login-node-name", "your-computer-name"],
+  "longRunPatterns": ["tar_make", "spades", "simInitAndSpades", "quarto render"]
+}
