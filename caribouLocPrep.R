@@ -166,7 +166,9 @@ doEvent.caribouLocPrep = function(sim, eventTime, eventType) {
 
       tmp_file <- tempfile(fileext = ".rds")
 
-      studyAreaJ <- sim$studyArea_juris
+      # wrap() packs each SpatVector, which saveRDS() alone cannot save for use in another R session;
+      # read back with lapply(readRDS(file), terra::unwrap)
+      studyAreaJ <- lapply(sim$studyArea_juris, terra::wrap)
 
       saveRDS(studyAreaJ, tmp_file)
 
